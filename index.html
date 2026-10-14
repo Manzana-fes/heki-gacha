@@ -144,7 +144,7 @@
                         </button>
                         <button onclick="copyCardContent()" class="text-white/80 hover:text-white px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition text-xs font-medium flex items-center space-x-1.5">
                             <i class="fa-regular fa-copy"></i>
-                            <span>テキストコピー</span>
+                            <span>結果のみコピー</span>
                         </button>
                     </div>
                 </div>
@@ -212,6 +212,29 @@
                             <span id="res-hint">「一度の出来事で全部解決しない。何度も繰り返すうちに関係が変わる」を意識して、3000字程度の短編の起承転結に組み込んでみましょう。</span>
                         </div>
                     </div>
+
+                    <!-- NEW: 創作メモ・小説執筆欄 -->
+                    <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label for="user-memo" class="font-bold text-slate-700 text-sm flex items-center space-x-2">
+                                <i class="fa-solid fa-pen-nib text-brand-600"></i>
+                                <span>創作アイデア・物語メモ欄</span>
+                            </label>
+                            <span class="text-[11px] text-slate-400">自動保存されます</span>
+                        </div>
+                        <p class="text-xs text-slate-500">このガチャ結果からインスピレーションを受けたプロット、セリフ、書き下ろし文章などを自由に書き留めてください。</p>
+                        <textarea id="user-memo" oninput="saveMemo()" rows="5" placeholder="例：&#13;&#10;・キャラクターA（普段クール）の疲れがピークに達した夜。&#13;&#10;・「……お前、またコーヒーばかり飲んで」とBがマグカップを取り上げる。&#13;&#10;・「少しだけ、ここに座らせてくれ」" class="w-full p-4 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition resize-y"></textarea>
+                        
+                        <!-- Batch Copy Button Area -->
+                        <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+                            <span class="text-xs text-slate-500">ガチャ結果 ＋ あなたのメモをまとめてコピーできます</span>
+                            <button onclick="copyAllWithMemo()" class="w-full sm:w-auto px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-md shadow-brand-500/20 transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-clipboard-check"></i>
+                                <span>ガチャ結果 ＋ メモを一括コピー</span>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -260,7 +283,7 @@
                 "体調不良を隠していた人が、相手に水を渡されて初めて自分が喉の渇きに気づく。",
                 "いつも冗談で場を回す人が、相手の『今日はもう喋らなくていいよ』に黙って頷く。",
                 "失敗を隠していた人が、相手に尋ねられる前から経緯を話し始める。",
-                "『大丈夫』と言い続けた人が、相手の前でだけ『大丈夫じゃないかもしれない』と訂正する。",
+                "『大丈夫』と言い続けた人が、相手の前でだけ『大丈夫かもしれない』と訂正する。",
                 "人前では泣かない人が、相手の姿を見た瞬間に顔を伏せる。",
                 "気が緩み、気の抜けた返事や寝ぼけた本音がうっかり口からこぼれる。",
                 "反射的に名前を呼んでしまい、言いかけて飲み込む。",
@@ -326,7 +349,7 @@
                     "意見が合わないふたりが、第三者のトラブルを守るときだけ完璧に連携する。"
                 ],
                 receives: [
-                    "共有のお菓子や飲み物を最後のひとつは誰も食べず、遠慮する人が取っても誰も何も言わず補充される。",
+                    "共有のお菓子や飲み物を最後のひとつは誰も食べず、遠慮する人が取っても何も言わず補充される。",
                     "不調者へ全員が違う方法で気遣い（水・仕事交代・無言）、翌日にはリカバリーの役割分担が自然とできている。",
                     "『ここにいてもいいのか』に『今さら何言ってんだ』と返す不器用な仲間たち。"
                 ]
@@ -390,13 +413,11 @@
         function spinGacha() {
             const btn = document.getElementById('gacha-btn');
             const capsule = document.getElementById('capsule-icon');
-            const resultContainer = document.getElementById('result-container');
 
             // Animation effects
             btn.disabled = true;
             capsule.classList.add('spin-capsule');
             
-            // Temporary loading feel
             setTimeout(() => {
                 capsule.classList.remove('spin-capsule');
                 btn.disabled = false;
@@ -436,6 +457,7 @@
                 special,
                 receive,
                 hint,
+                memo: '', // Initialize empty memo for new result
                 mode: currentMode
             };
 
@@ -445,36 +467,65 @@
             document.getElementById('res-special').innerText = special;
             document.getElementById('res-receive').innerText = receive;
             document.getElementById('res-hint').innerText = hint;
+            document.getElementById('user-memo').value = '';
 
             updateBookmarkButtonState();
 
             const container = document.getElementById('result-container');
             container.classList.remove('hidden');
-            // Trigger animation
             setTimeout(() => {
                 container.classList.remove('translate-y-4', 'opacity-0');
             }, 50);
 
-            // Scroll smoothly to result on mobile
             container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Save memo content into currentResult and bookmarks in real-time
+        function saveMemo() {
+            if (!currentResult) return;
+            const memoText = document.getElementById('user-memo').value;
+            currentResult.memo = memoText;
+
+            // Also update if it's already in bookmarks
+            const index = bookmarks.findIndex(b => b.id === currentResult.id);
+            if (index > -1) {
+                bookmarks[index].memo = memoText;
+                localStorage.setItem('kuse_bookmarks', JSON.stringify(bookmarks));
+            }
         }
 
         function copyCardContent() {
             if (!currentResult) return;
             const textToCopy = `【癖シチュガチャ生成結果】\n■核心のモチーフ: ${currentResult.quote}\n\n①弱さが漏れる瞬間:\n${currentResult.leak}\n\n②特別な弱さ:\n${currentResult.special}\n\n③受け止める側・チーム:\n${currentResult.receive}\n\n[創作ヒント] ${currentResult.hint}`;
+            executeCopy(textToCopy, 'ガチャ結果をコピーしました！');
+        }
+
+        function copyAllWithMemo() {
+            if (!currentResult) return;
+            const memoContent = document.getElementById('user-memo').value.trim();
             
+            let textToCopy = `【癖シチュガチャ＆創作メモ】\n■核心のモチーフ: ${currentResult.quote}\n\n①弱さが漏れる瞬間:\n${currentResult.leak}\n\n②特別な弱さ:\n${currentResult.special}\n\n③受け止める側・チーム:\n${currentResult.receive}\n\n[創作ヒント] ${currentResult.hint}`;
+            
+            if (memoContent) {
+                textToCopy += `\n\n【創作アイデア・メモ】\n${memoContent}`;
+            }
+
+            executeCopy(textToCopy, 'ガチャ結果とメモを一括コピーしました！');
+        }
+
+        function executeCopy(textToCopy, successMessage) {
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                    showToast('クリップボードにコピーしました！', 'success');
+                    showToast(successMessage, 'success');
                 }).catch(() => {
-                    fallbackCopy(textToCopy);
+                    fallbackCopy(textToCopy, successMessage);
                 });
             } else {
-                fallbackCopy(textToCopy);
+                fallbackCopy(textToCopy, successMessage);
             }
         }
 
-        function fallbackCopy(text) {
+        function fallbackCopy(text, successMessage) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
             textArea.style.position = "fixed";
@@ -483,7 +534,7 @@
             textArea.select();
             try {
                 document.execCommand('copy');
-                showToast('クリップボードにコピーしました！', 'success');
+                showToast(successMessage, 'success');
             } catch (err) {
                 showToast('コピーに失敗しました', 'error');
             }
@@ -511,14 +562,17 @@
         // Bookmark Management
         function saveCurrentResult() {
             if (!currentResult) return;
-            const existsIndex = bookmarks.findIndex(b => b.quote === currentResult.quote && b.leak === currentResult.leak);
+            // Make sure latest memo is saved
+            saveMemo();
+
+            const existsIndex = bookmarks.findIndex(b => b.id === currentResult.id);
             
             if (existsIndex > -1) {
                 bookmarks.splice(existsIndex, 1);
                 showToast('キープを解除しました', 'success');
             } else {
                 bookmarks.unshift(currentResult);
-                showToast('シチュエーションをキープしました！', 'success');
+                showToast('シチュエーションとメモをキープしました！', 'success');
             }
             
             localStorage.setItem('kuse_bookmarks', JSON.stringify(bookmarks));
@@ -593,6 +647,7 @@
                         <p><strong>漏れ:</strong> ${item.leak}</p>
                         <p><strong>特別:</strong> ${item.special}</p>
                         <p><strong>受容:</strong> ${item.receive}</p>
+                        ${item.memo ? `<p class="mt-2 pt-2 border-t border-slate-100 text-brand-700"><strong>メモ:</strong> ${item.memo.length > 50 ? item.memo.substring(0, 50) + '...' : item.memo}</p>` : ''}
                     </div>
                     <div class="mt-3 flex justify-end">
                         <button onclick='loadBookmarkToMain(${JSON.stringify(item)})' class="text-xs text-brand-600 hover:text-brand-700 font-semibold flex items-center space-x-1">
@@ -631,6 +686,7 @@
             document.getElementById('res-special').innerText = item.special;
             document.getElementById('res-receive').innerText = item.receive;
             document.getElementById('res-hint').innerText = item.hint;
+            document.getElementById('user-memo').value = item.memo || '';
 
             updateBookmarkButtonState();
             closeBookmarksModal();
@@ -646,7 +702,6 @@
         // Initialize on load
         window.onload = function() {
             updateBookmarkBadge();
-            // Optional: Auto spin initial gacha or leave ready
         };
     </script>
 </body>
