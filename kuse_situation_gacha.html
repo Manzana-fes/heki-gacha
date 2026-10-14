@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="ja" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>癖シチュ大辞典ガチャ ｜ 創作支援シチュエーションジェネレーター</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fdf4f8',
+                            100: '#fbe8f1',
+                            200: '#f7d5e4',
+                            300: '#f1b3cc',
+                            400: '#e882ac',
+                            500: '#dc558d',
+                            600: '#c53872',
+                            700: '#a52a5c',
+                            800: '#89254e',
+                            900: '#732244',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(1deg); }
+        }
+        @keyframes capsule-spin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2) translateY(-20px); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(220, 85, 141, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(220, 85, 141, 0.8); }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+        .spin-capsule { animation: capsule-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glow-btn { animation: pulse-glow 2.5s infinite; }
+        
+        /* Custom scrollbar for bookmarks */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-pink-50/40 to-purple-50/30 text-slate-800 h-full flex flex-col font-sans antialiased min-h-screen">
+
+    <!-- Header Navigation -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-pink-100 sticky top-0 z-40 transition-all">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-500 to-pink-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                    <i class="fa-solid fa-heart-pulse text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg bg-gradient-to-r from-brand-700 to-pink-600 bg-clip-text text-transparent">癖シチュ大辞典ガチャ</h1>
+                    <p class="text-xs text-slate-500">3000字小説・創作ネタジェネレーター</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="openBookmarksModal()" class="relative px-3 py-2 rounded-xl bg-pink-50 text-brand-700 hover:bg-pink-100 transition text-sm font-medium flex items-center space-x-2">
+                    <i class="fa-solid fa-bookmark"></i>
+                    <span class="hidden sm:inline">キープ一覧</span>
+                    <span id="bookmark-badge" class="bg-brand-600 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-6 md:py-10 flex flex-col justify-between">
+        
+        <!-- Top Gacha Controller Area -->
+        <div class="bg-white/90 backdrop-blur-sm rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/50 border border-white relative overflow-hidden mb-8">
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-pink-100/50 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -left-10 -top-10 w-40 h-40 bg-purple-100/50 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="text-center max-w-lg mx-auto mb-8">
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight mb-2">
+                    無意識の露呈 × 無条件の受容
+                </h2>
+                <p class="text-sm text-slate-600">
+                    ボタンを押すと、3つの要素（弱みの露呈・特別なシチュ・受け止め＆チーム）が奇跡の化学反応を起こします。
+                </p>
+            </div>
+
+            <!-- Mode selector tabs -->
+            <div class="flex flex-wrap justify-center gap-2 mb-8">
+                <button onclick="setMode('all')" id="tab-all" class="mode-tab px-4 py-2 rounded-full text-xs md:text-sm font-medium transition shadow-sm bg-brand-600 text-white">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i> すべて総合ガチャ
+                </button>
+                <button onclick="setMode('team')" id="tab-team" class="mode-tab px-4 py-2 rounded-full text-xs md:text-sm font-medium transition shadow-sm bg-slate-100 text-slate-600 hover:bg-slate-200">
+                    <i class="fa-solid fa-users mr-1.5"></i> チーム・暗黙の了解
+                </button>
+                <button onclick="setMode('night')" id="tab-night" class="mode-tab px-4 py-2 rounded-full text-xs md:text-sm font-medium transition shadow-sm bg-slate-100 text-slate-600 hover:bg-slate-200">
+                    <i class="fa-solid fa-moon mr-1.5"></i> 眠り・夜・帰還
+                </button>
+                <button onclick="setMode('physical')" id="tab-physical" class="mode-tab px-4 py-2 rounded-full text-xs md:text-sm font-medium transition shadow-sm bg-slate-100 text-slate-600 hover:bg-slate-200">
+                    <i class="fa-solid fa-hand-holding-heart mr-1.5"></i> 身体の動き・距離
+                </button>
+            </div>
+
+            <!-- Big Gacha Button -->
+            <div class="flex flex-col items-center justify-center">
+                <div id="capsule-icon" class="text-4xl text-brand-500 mb-4 animate-float">
+                    <i class="fa-solid fa-capsules"></i>
+                </div>
+                <button onclick="spinGacha()" id="gacha-btn" class="glow-btn w-full sm:w-auto min-w-[260px] py-4 px-8 bg-gradient-to-r from-brand-600 via-brand-500 to-pink-500 hover:from-brand-700 hover:to-pink-600 text-white font-bold rounded-2xl shadow-lg shadow-brand-500/30 text-lg transition-all transform active:scale-95 flex items-center justify-center space-x-3 cursor-pointer">
+                    <i class="fa-solid fa-dice text-xl animate-spin-slow"></i>
+                    <span>癖シチュをガチャる！</span>
+                </button>
+                <p class="text-xs text-slate-400 mt-3">※何度でも無料で回せます（全組み合わせ数千通り以上）</p>
+            </div>
+        </div>
+
+        <!-- Result Display Area (Card) -->
+        <div id="result-container" class="hidden transition-all duration-500 transform translate-y-4 opacity-0 mb-12">
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-pink-100 overflow-hidden relative">
+                <!-- Card Header -->
+                <div class="bg-gradient-to-r from-slate-900 to-brand-900 text-white px-6 py-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-brand-500 animate-pulse"></span>
+                        <span class="text-xs font-semibold tracking-wider uppercase text-pink-200">Generated Scenario Card</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="saveCurrentResult()" id="bookmark-btn" class="text-white/80 hover:text-white px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition text-xs font-medium flex items-center space-x-1.5">
+                            <i class="fa-regular fa-bookmark" id="bookmark-icon"></i>
+                            <span id="bookmark-text">キープ保存</span>
+                        </button>
+                        <button onclick="copyCardContent()" class="text-white/80 hover:text-white px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition text-xs font-medium flex items-center space-x-1.5">
+                            <i class="fa-regular fa-copy"></i>
+                            <span>テキストコピー</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="p-6 md:p-8 space-y-6">
+                    <!-- Title / Theme Quote -->
+                    <div class="bg-pink-50/70 border-l-4 border-brand-500 p-4 rounded-r-2xl">
+                        <span class="text-xs font-bold text-brand-600 block mb-1">■ 核心となるモチーフ / 一文</span>
+                        <h3 id="res-quote" class="text-base md:text-lg font-bold text-slate-800 leading-snug">
+                            「彼が弱音を吐くのは、いつだって全部が終わったあとだった。」
+                        </h3>
+                    </div>
+
+                    <!-- 3 Elements Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Element 1 -->
+                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center space-x-2 text-brand-600 font-bold text-xs uppercase tracking-wider mb-2">
+                                    <i class="fa-solid fa-droplet"></i>
+                                    <span>① 弱さが漏れる瞬間</span>
+                                </div>
+                                <p id="res-leak" class="text-sm text-slate-700 font-medium">
+                                    徹夜明け、「おかえり」で急に眠そうになる。声がかすれ、平気と言う声に張りがない。
+                                </p>
+                            </div>
+                            <span class="text-[10px] text-slate-400 mt-3 pt-2 border-t border-slate-200/60 block">無意識の露呈・隠しきれない疲労</span>
+                        </div>
+
+                        <!-- Element 2 -->
+                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center space-x-2 text-purple-600 font-bold text-xs uppercase tracking-wider mb-2">
+                                    <i class="fa-solid fa-user-shield"></i>
+                                    <span>② その人にだけ見せる特別な弱さ</span>
+                                </div>
+                                <p id="res-special" class="text-sm text-slate-700 font-medium">
+                                    全員の前では最後まで立っているのに、その人が来た瞬間だけ椅子に座る。
+                                </p>
+                            </div>
+                            <span class="text-[10px] text-slate-400 mt-3 pt-2 border-t border-slate-200/60 block">特別な偏り・行動のギャップ</span>
+                        </div>
+
+                        <!-- Element 3 -->
+                        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center space-x-2 text-indigo-600 font-bold text-xs uppercase tracking-wider mb-2">
+                                    <i class="fa-solid fa-hands-holding-child"></i>
+                                    <span>③ 受け止める側 ＆ 身体・チーム</span>
+                                </div>
+                                <p id="res-receive" class="text-sm text-slate-700 font-medium">
+                                    泣いたあと、何事もなかったように温かい飲み物を差し出し、同じ景色を見ながら黙って過ごす。
+                                </p>
+                            </div>
+                            <span class="text-[10px] text-slate-400 mt-3 pt-2 border-t border-slate-200/60 block">受け止める態度・身体の動き</span>
+                        </div>
+                    </div>
+
+                    <!-- Writing Prompt Hint -->
+                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-2xl text-xs text-slate-600 flex items-start space-x-3">
+                        <i class="fa-solid fa-lightbulb text-brand-500 text-base mt-0.5"></i>
+                        <div>
+                            <span class="font-bold text-slate-700 block mb-0.5">執筆プロットのヒント:</span>
+                            <span id="res-hint">「一度の出来事で全部解決しない。何度も繰り返すうちに関係が変わる」を意識して、3000字程度の短編の起承転結に組み込んでみましょう。</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Info -->
+        <footer class="text-center text-xs text-slate-400 py-4 mt-auto">
+            <p>癖シチュ大辞典 ｜ データ：癖シチュ大辞典・癖シチュチェックリストに基づく創作支援アプリ</p>
+        </footer>
+    </main>
+
+    <!-- Bookmarks Modal -->
+    <div id="bookmarks-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300" id="modal-content">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-bookmark text-brand-600"></i>
+                    <h3 class="font-bold text-slate-800">キープしたシチュエーション一覧</h3>
+                </div>
+                <button onclick="closeBookmarksModal()" class="w-8 h-8 rounded-full bg-slate-200/60 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="bookmarks-list" class="p-6 overflow-y-auto space-y-4 flex-1">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="px-6 py-3 border-t border-slate-100 bg-slate-50 flex justify-between items-center text-xs text-slate-500">
+                <span id="bookmark-count-text">保存数: 0件</span>
+                <button onclick="clearBookmarks()" class="text-red-500 hover:text-red-700 font-medium transition">すべてクリア</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Message Box -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-3 text-sm">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-green-400"></i>
+        <span id="toast-msg">クリップボードにコピーしました！</span>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Database of Kuse Situations based on provided PDF and Markdown
+        const db = {
+            leaks: [
+                "徹夜明け、『おかえり』で急に眠そうになる。声がかすれ、平気と言う声に張りがない。",
+                "全員の前では完璧に仕事を終えた人が、ふたりきりになった途端、椅子から立てなくなる。",
+                "体調不良を隠していた人が、相手に水を渡されて初めて自分が喉の渇きに気づく。",
+                "いつも冗談で場を回す人が、相手の『今日はもう喋らなくていいよ』に黙って頷く。",
+                "失敗を隠していた人が、相手に尋ねられる前から経緯を話し始める。",
+                "『大丈夫』と言い続けた人が、相手の前でだけ『大丈夫じゃないかもしれない』と訂正する。",
+                "人前では泣かない人が、相手の姿を見た瞬間に顔を伏せる。",
+                "気が緩み、気の抜けた返事や寝ぼけた本音がうっかり口からこぼれる。",
+                "反射的に名前を呼んでしまい、言いかけて飲み込む。",
+                "靴を脱いだまま動けなくなり、椅子に沈むように力が抜ける。",
+                "笑い損ねる、怒るほどの元気もない。強がりが続かず冗談に逃げられない。",
+                "緊張が切れた瞬間に細かく震えが出る。"
+            ],
+            specials: [
+                "全員の前では最後まで立っているのに、その人が来た瞬間だけ椅子に座る。",
+                "いつも自分で決める人が、その人にだけ『どうしたらいいと思う』と尋ねる。",
+                "誰かに触れられると身構えるのに、その人が肩に触れても避けない。",
+                "『帰れ』と言うくせに、本当に帰ろうとすると呼び止める。",
+                "助けを断るのが癖なのに、その人の差し出した手だけは取ってしまう。",
+                "眠るのが苦手なのに、その人がいると眠ってしまう。",
+                "ひとりで抱え込む人が、その人には失敗の経緯を最初から話す。",
+                "普段は相手の名前を呼ばないのに、苦しいときだけ名前が出る。",
+                "いつも周囲を観察している人が、その人の前では観察することを忘れる。",
+                "『来るな』と言いながら去られると急に落ち着かなくなる。",
+                "『ひとりでできる』と言いつつ手を出されると抵抗しない。",
+                "眠れないと言いながら、出ようとすると目を開けて裾をつかむ。"
+            ],
+            receives: [
+                "泣いたあと、何事もなかったように温かい飲み物を差し出す。",
+                "眠った相手に起きたとき困らないメモを残し、毛布をそっと掛ける。",
+                "食事を取れない相手の隣で自分もゆっくり食事を取る。",
+                "動けない相手に『今日はここまで』と終わりを決める。",
+                "接触が苦手な人に毛布を手渡して適度な距離を保つ。",
+                "自分自身の失敗談を話して場を和らげ、失敗を責めない。",
+                "『謝ることじゃない』とだけ返し、必要なフォローをしつつ修正の余地を残す。",
+                "普段は頼られるリーダーの失敗に『そうか、じゃあ次どうする？』と普通に話を進める。",
+                "『助けて』という言葉に恩返しのように扱わず、当然の仕事として引き受ける。",
+                "泣きそうなのを『見なかったこと』にしつつ部屋に残る。",
+                "徹夜でフォロー資料を作り、無言で机の上に置く。",
+                "リーダーがペンを置いたら全員が自然に手を止めるチームの暗黙の了解。"
+            ],
+            quotes: [
+                "彼が弱音を吐くのは、いつだって全部が終わったあとだった。",
+                "『大丈夫』の声がいつもより小さいことに、気づいたのは自分だけだった。",
+                "仲がいいわけではない。けれど、あいつがいないと、いつもの手順がひとつ足りなかった。",
+                "彼らは互いの私生活を知らない。それでも、誰が無理をしているかだけはわかるようになっていた。",
+                "「手伝ってほしいわけじゃない。ただ、ここにいてくれ」",
+                "「頼むのは苦手なんだ。察してくれとは言わない。だから、今、頼んでる」",
+                "「無理に元気にならなくていい。ここにいることに、理由はいらない」",
+                "帰るまで誰も帰らない。仕事が終われば即解散の組織に生まれた暗黙の了解。"
+            ],
+            hints: [
+                "一度の出来事で全部解決しない。何度も繰り返すうちに関係が変わる描写を意識。",
+                "受け止める側は相手を別人にしない。その人らしさを尊重し、必要な支えだけを差し出す。",
+                "安心は身体の変化で示す。息を吐く、肩が落ちる、背中を預けるなどの微細な動作を盛り込む。",
+                "絆が深まっても個々人の独立性を残す。それぞれが自分の場所を持ったまま、必要なときだけ相手を選ぶ。",
+                "第2段階（癖を覚える）から第3段階（失敗を見せる）への移行期を彩るエピソードとして最適。"
+            ],
+            team: {
+                leaks: [
+                    "普段は休憩を拒むリーダーがペンを置いたら、全員が自然に手を止める（本人だけ理由を知らない）。",
+                    "仕事が終われば即解散の原則なのに、ひとりの帰りが遅い日は全員別々の理由で残っている。",
+                    "単独行動する人物の席は誰も使わず、不在から戻ると誰かが何気なく資料を置いておく。",
+                    "口の悪い奴が、苦手作業を無言で代わる。"
+                ],
+                specials: [
+                    "世話役が体調を崩し、チーム全員が慣れない手つきで看病する。",
+                    "いつも助ける側だった人が『助けてほしい』と言うと、相手は当然の仕事として引き受ける。",
+                    "意見が合わないふたりが、第三者のトラブルを守るときだけ完璧に連携する。"
+                ],
+                receives: [
+                    "共有のお菓子や飲み物を最後のひとつは誰も食べず、遠慮する人が取っても誰も何も言わず補充される。",
+                    "不調者へ全員が違う方法で気遣い（水・仕事交代・無言）、翌日にはリカバリーの役割分担が自然とできている。",
+                    "『ここにいてもいいのか』に『今さら何言ってんだ』と返す不器用な仲間たち。"
+                ]
+            },
+            night: {
+                leaks: [
+                    "外では完璧だった人が、帰宅して靴を脱いだところで動けなくなる。",
+                    "仲間の前では気丈だった人が、最後に残ったひとりに『終わった』と呟く。",
+                    "任務から戻った人が、相手の姿を確認してから初めて装備を外す。",
+                    "不眠の夜、無意識に相手の部屋の前まで足が向く。"
+                ],
+                specials: [
+                    "眠れない人が『寝るまでいてくれ』とは言えず、相手の本を読む横でいつの間にか眠ってしまう。",
+                    "『起きているから帰っていい』と言ったのに、相手が立つと目を開ける。",
+                    "傷を隠していた人が、相手に見つかると観念して座る。"
+                ],
+                receives: [
+                    "相手が眠るまで話していた人が、相手の寝息を聞いてから自分も眠る。",
+                    "夜中に目覚めた人が、隣の部屋の明かりを見て安心する。",
+                    "動けない相手に毛布をかけ、扉を少し開けたままにする。"
+                ]
+            },
+            physical: {
+                leaks: [
+                    "対面からいつの間にか隣へ座り、緊張すると手が止まるか袖をつかむ。",
+                    "視線で相手を探し、足音を聞き分けて反射的に振り返る。",
+                    "背中を預ける、隣の席を空けておく、存在を確かめるように服の裾を握る。"
+                ],
+                specials: [
+                    "差し出された手を考えるより先に取る。相手が離れようとしたとき指先がほんの少しだけ追いかける。",
+                    "手をつなぐのではなく、指先だけ触れたまま離れない。眠っている相手が服の裾を握っている。",
+                    "緊張すると手元をいじる人が、相手の前では何も握らずにいられる。"
+                ],
+                receives: [
+                    "肩の埃を無言で払い、冷えた手を自分のポケットに入れさせる。",
+                    "目が合うと諦めたように息を吐き、相手の目を見たまま黙る。",
+                    "差し出された手を取る際、手が触れても引っ込めない温かな空気感。"
+                ]
+            }
+        };
+
+        let currentMode = 'all';
+        let currentResult = null;
+        let bookmarks = JSON.parse(localStorage.getItem('kuse_bookmarks') || '[]');
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-tab').forEach(btn => {
+                btn.className = "mode-tab px-4 py-2 rounded-full text-xs md:text-sm font-medium transition shadow-sm bg-slate-100 text-slate-600 hover:bg-slate-200";
+            });
+            const activeBtn = document.getElementById(`tab-${mode}`);
+            if (activeBtn) {
+                activeBtn.className = "mode-tab px-4 py-2 rounded-full text-xs md:text-sm font-medium transition shadow-sm bg-brand-600 text-white";
+            }
+        }
+
+        function getRandomItem(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function spinGacha() {
+            const btn = document.getElementById('gacha-btn');
+            const capsule = document.getElementById('capsule-icon');
+            const resultContainer = document.getElementById('result-container');
+
+            // Animation effects
+            btn.disabled = true;
+            capsule.classList.add('spin-capsule');
+            
+            // Temporary loading feel
+            setTimeout(() => {
+                capsule.classList.remove('spin-capsule');
+                btn.disabled = false;
+                generateResult();
+            }, 600);
+        }
+
+        function generateResult() {
+            let poolLeaks = db.leaks;
+            let poolSpecials = db.specials;
+            let poolReceives = db.receives;
+
+            if (currentMode === 'team' && db.team) {
+                poolLeaks = db.team.leaks;
+                poolSpecials = db.team.specials;
+                poolReceives = db.team.receives;
+            } else if (currentMode === 'night' && db.night) {
+                poolLeaks = db.night.leaks;
+                poolSpecials = db.night.specials;
+                poolReceives = db.night.receives;
+            } else if (currentMode === 'physical' && db.physical) {
+                poolLeaks = db.physical.leaks;
+                poolSpecials = db.physical.specials;
+                poolReceives = db.physical.receives;
+            }
+
+            const quote = getRandomItem(db.quotes);
+            const leak = getRandomItem(poolLeaks);
+            const special = getRandomItem(poolSpecials);
+            const receive = getRandomItem(poolReceives);
+            const hint = getRandomItem(db.hints);
+
+            currentResult = {
+                id: Date.now(),
+                quote,
+                leak,
+                special,
+                receive,
+                hint,
+                mode: currentMode
+            };
+
+            // Display elements
+            document.getElementById('res-quote').innerText = quote;
+            document.getElementById('res-leak').innerText = leak;
+            document.getElementById('res-special').innerText = special;
+            document.getElementById('res-receive').innerText = receive;
+            document.getElementById('res-hint').innerText = hint;
+
+            updateBookmarkButtonState();
+
+            const container = document.getElementById('result-container');
+            container.classList.remove('hidden');
+            // Trigger animation
+            setTimeout(() => {
+                container.classList.remove('translate-y-4', 'opacity-0');
+            }, 50);
+
+            // Scroll smoothly to result on mobile
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function copyCardContent() {
+            if (!currentResult) return;
+            const textToCopy = `【癖シチュガチャ生成結果】\n■核心のモチーフ: ${currentResult.quote}\n\n①弱さが漏れる瞬間:\n${currentResult.leak}\n\n②特別な弱さ:\n${currentResult.special}\n\n③受け止める側・チーム:\n${currentResult.receive}\n\n[創作ヒント] ${currentResult.hint}`;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showToast('クリップボードにコピーしました！', 'success');
+                }).catch(() => {
+                    fallbackCopy(textToCopy);
+                });
+            } else {
+                fallbackCopy(textToCopy);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('クリップボードにコピーしました！', 'success');
+            } catch (err) {
+                showToast('コピーに失敗しました', 'error');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            const iconEl = document.getElementById('toast-icon');
+
+            msgEl.innerText = msg;
+            if (type === 'success') {
+                iconEl.className = 'fa-solid fa-circle-check text-green-400';
+            } else {
+                iconEl.className = 'fa-solid fa-circle-exclamation text-red-400';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Bookmark Management
+        function saveCurrentResult() {
+            if (!currentResult) return;
+            const existsIndex = bookmarks.findIndex(b => b.quote === currentResult.quote && b.leak === currentResult.leak);
+            
+            if (existsIndex > -1) {
+                bookmarks.splice(existsIndex, 1);
+                showToast('キープを解除しました', 'success');
+            } else {
+                bookmarks.unshift(currentResult);
+                showToast('シチュエーションをキープしました！', 'success');
+            }
+            
+            localStorage.setItem('kuse_bookmarks', JSON.stringify(bookmarks));
+            updateBookmarkBadge();
+            updateBookmarkButtonState();
+        }
+
+        function updateBookmarkBadge() {
+            const badge = document.getElementById('bookmark-badge');
+            badge.innerText = bookmarks.length;
+        }
+
+        function updateBookmarkButtonState() {
+            if (!currentResult) return;
+            const isSaved = bookmarks.some(b => b.quote === currentResult.quote && b.leak === currentResult.leak);
+            const icon = document.getElementById('bookmark-icon');
+            const text = document.getElementById('bookmark-text');
+            
+            if (isSaved) {
+                icon.className = 'fa-solid fa-bookmark text-pink-300';
+                text.innerText = 'キープ中';
+            } else {
+                icon.className = 'fa-regular fa-bookmark';
+                text.innerText = 'キープ保存';
+            }
+        }
+
+        function openBookmarksModal() {
+            renderBookmarksList();
+            const modal = document.getElementById('bookmarks-modal');
+            const content = document.getElementById('modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeBookmarksModal() {
+            const modal = document.getElementById('bookmarks-modal');
+            const content = document.getElementById('modal-content');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function renderBookmarksList() {
+            const listEl = document.getElementById('bookmarks-list');
+            const countText = document.getElementById('bookmark-count-text');
+            countText.innerText = `保存数: ${bookmarks.length}件`;
+
+            if (bookmarks.length === 0) {
+                listEl.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fa-regular fa-bookmark text-3xl mb-2 text-slate-300"></i>
+                        <p class="text-sm">キープされたシチュエーションはまだありません。<br>ガチャで気に入った結果を保存しましょう！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = bookmarks.map((item, index) => `
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 relative group">
+                    <button onclick="removeBookmark(${item.id})" class="absolute top-3 right-3 text-slate-400 hover:text-red-500 transition p-1">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                    <span class="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full inline-block mb-2">Saved #${bookmarks.length - index}</span>
+                    <h4 class="font-bold text-slate-800 text-sm mb-2">${item.quote}</h4>
+                    <div class="text-xs text-slate-600 space-y-1 bg-white p-3 rounded-xl border border-slate-100">
+                        <p><strong>漏れ:</strong> ${item.leak}</p>
+                        <p><strong>特別:</strong> ${item.special}</p>
+                        <p><strong>受容:</strong> ${item.receive}</p>
+                    </div>
+                    <div class="mt-3 flex justify-end">
+                        <button onclick='loadBookmarkToMain(${JSON.stringify(item)})' class="text-xs text-brand-600 hover:text-brand-700 font-semibold flex items-center space-x-1">
+                            <span>このカードを表示する</span>
+                            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function removeBookmark(id) {
+            bookmarks = bookmarks.filter(b => b.id !== id);
+            localStorage.setItem('kuse_bookmarks', JSON.stringify(bookmarks));
+            updateBookmarkBadge();
+            renderBookmarksList();
+            updateBookmarkButtonState();
+            showToast('キープを削除しました', 'success');
+        }
+
+        function clearBookmarks() {
+            if (confirm('保存したキープをすべて削除してもよろしいですか？')) {
+                bookmarks = [];
+                localStorage.setItem('kuse_bookmarks', JSON.stringify(bookmarks));
+                updateBookmarkBadge();
+                renderBookmarksList();
+                updateBookmarkButtonState();
+                showToast('すべてのキープをクリアしました', 'success');
+            }
+        }
+
+        function loadBookmarkToMain(item) {
+            currentResult = item;
+            document.getElementById('res-quote').innerText = item.quote;
+            document.getElementById('res-leak').innerText = item.leak;
+            document.getElementById('res-special').innerText = item.special;
+            document.getElementById('res-receive').innerText = item.receive;
+            document.getElementById('res-hint').innerText = item.hint;
+
+            updateBookmarkButtonState();
+            closeBookmarksModal();
+
+            const container = document.getElementById('result-container');
+            container.classList.remove('hidden');
+            setTimeout(() => {
+                container.classList.remove('translate-y-4', 'opacity-0');
+            }, 50);
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            updateBookmarkBadge();
+            // Optional: Auto spin initial gacha or leave ready
+        };
+    </script>
+</body>
+</html>
